@@ -1,17 +1,27 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { FC } from "react";
+import { FC, useState } from "react";
+import { Button } from "~/components/Button";
+import { Input } from "~/components/Input";
+import { Label } from "~/components/Label";
 import { DefaultLayout } from "~/templates/Default";
 
 import { api, RouterOutputs } from "~/utils/api";
+import { intlCurrency } from "~/utils/intl";
 
 const Home: NextPage = () => {
+  const [page, setPage] = useState(1);
+  const [term, setTerm] = useState("");
+
   const searchQuery = api.product.search.useQuery({
-    limit: 10,
-    page: 1,
-    term: "",
+    limit: 12,
+    page,
+    term,
   });
+
+  const handleNext = () => setPage((prev) => prev + 1);
+  const handlePrev = () => setPage((prev) => Math.max(1, prev - 1));
 
   return (
     <>
@@ -24,7 +34,14 @@ const Home: NextPage = () => {
       <DefaultLayout>
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white">
-            <div className="mx-auto max-w-2xl py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+            <div className="mx-auto max-w-2xl px-4 pt-4 pb-16  sm:px-6 lg:max-w-7xl lg:px-8">
+              <Label htmlFor="term">Termo de Busca</Label>
+              <Input
+                id="term"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+              />
+
               <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:gap-x-8">
                 {searchQuery.data?.map((product) => (
                   <ProductCard
@@ -34,6 +51,30 @@ const Home: NextPage = () => {
                 ))}
               </div>
             </div>
+
+            <nav
+              className="flex items-center justify-between  border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+              aria-label="Pagination"
+            >
+              <div className="flex flex-1 justify-between gap-4 sm:justify-end">
+                <Button
+                  disabled={searchQuery.isLoading}
+                  // className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  variant={"subtle"}
+                  onClick={handlePrev}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  disabled={searchQuery.isLoading}
+                  // className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  variant={"subtle"}
+                  onClick={handleNext}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </nav>
           </div>
         </div>
       </DefaultLayout>
@@ -61,8 +102,14 @@ const ProductCard: FC<RouterOutputs["product"]["search"][number]> = (props) => {
           </h3>
           <p className="text-sm text-gray-500">{props.description}</p>
           <div className="flex flex-1 flex-col justify-end">
-            <p className="text-sm italic text-gray-500">{""}</p>
-            <p className="text-base font-medium text-gray-900">{props.price}</p>
+            <p className="text-sm italic text-gray-500">
+              {props.discount ? intlCurrency(props.price) : null}
+            </p>
+            <p className="text-base font-medium text-gray-900">
+              {intlCurrency(
+                props.discount ? props.discount_price : props.price
+              )}
+            </p>
           </div>
         </div>
       </div>

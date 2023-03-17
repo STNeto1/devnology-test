@@ -110,7 +110,7 @@ type SearchProduct = {
   name: string;
   description: string;
   price: number;
-  discount_price: number | null;
+  discount_price: number;
   discount: boolean;
   thumbnail: string;
 };
@@ -128,7 +128,7 @@ const mergeProducts = (
       name: elem.nome,
       description: elem.descricao,
       price: elem.preco,
-      discount_price: null,
+      discount_price: 0,
       discount: false,
       thumbnail: elem.imagem,
     });
