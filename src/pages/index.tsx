@@ -1,11 +1,18 @@
 import { type NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
+import { FC } from "react";
+import { Button } from "~/components/Button";
 import { DefaultLayout } from "~/templates/Default";
 
-import { api } from "~/utils/api";
+import { api, RouterOutputs } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const searchQuery = api.product.search.useQuery({
+    limit: 10,
+    page: 1,
+    term: "",
+  });
 
   return (
     <>
@@ -17,9 +24,61 @@ const Home: NextPage = () => {
 
       <DefaultLayout>
         <div className="px-4 py-6 sm:px-0">
-          <h1>Hello</h1>
+          <div className="bg-white">
+            <div className="mx-auto max-w-2xl py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+              <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:gap-x-8">
+                {searchQuery.data?.products.map((product) => (
+                  <ProductCard key={product.nome} {...product} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </DefaultLayout>
+    </>
+  );
+};
+
+const ProductCard: FC<
+  RouterOutputs["product"]["search"]["products"][number]
+> = (props) => {
+  return (
+    <>
+      <div>
+        <div className="relative">
+          <div className="relative h-72 w-full overflow-hidden rounded-lg">
+            <Image
+              src={props.imagem}
+              alt={props.descricao}
+              width={288}
+              height={288}
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
+          <div className="relative mt-4">
+            <h3 className="text-sm font-medium text-gray-900">{props.nome}</h3>
+            <p className="mt-1 text-sm text-gray-500">{props.departamento}</p>
+          </div>
+          <div className="absolute inset-x-0 top-0 flex h-72 items-end justify-end overflow-hidden rounded-lg p-4">
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black opacity-50"
+            />
+            <p className="relative text-lg font-semibold text-white">
+              {props.preco}
+            </p>
+          </div>
+        </div>
+        <div className="mt-6">
+          <Button
+            // className="relative flex items-center justify-center rounded-md border border-transparent bg-gray-100 py-2 px-8 text-sm font-medium text-gray-900 hover:bg-gray-200"
+            className="w-full"
+            variant={"subtle"}
+          >
+            Adicionar ao carrinho<span className="sr-only">, {props.nome}</span>
+          </Button>
+        </div>
+      </div>
     </>
   );
 };
