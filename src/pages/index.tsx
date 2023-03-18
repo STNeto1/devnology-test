@@ -5,6 +5,7 @@ import { FC, useState } from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Label } from "~/components/Label";
+import { Loading } from "~/components/Loading";
 import { DefaultLayout } from "~/templates/Default";
 
 import { api, RouterOutputs } from "~/utils/api";
@@ -42,14 +43,21 @@ const Home: NextPage = () => {
                 onChange={(e) => setTerm(e.target.value)}
               />
 
-              <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:gap-x-8">
-                {searchQuery.data?.map((product) => (
-                  <ProductCard
-                    key={[product.id, product.origin].join("-")}
-                    {...product}
-                  />
-                ))}
-              </div>
+              {searchQuery.isLoading && (
+                <section className="pt-4">
+                  <Loading />
+                </section>
+              )}
+              {searchQuery.data && (
+                <div className="mt-8 grid grid-cols-1 gap-y-12 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:gap-x-8">
+                  {searchQuery.data.map((product) => (
+                    <ProductCard
+                      key={[product.id, product.origin].join("-")}
+                      {...product}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             <nav
@@ -95,7 +103,7 @@ const ProductCard: FC<RouterOutputs["product"]["search"][number]> = (props) => {
         </div>
         <div className="flex flex-1 flex-col space-y-2 p-4">
           <h3 className="text-sm font-medium text-gray-900">
-            <Link href={"#"}>
+            <Link href={[props.origin.substring(0, 1), props.id].join("/")}>
               <span aria-hidden="true" className="absolute inset-0" />
               {props.name}
             </Link>

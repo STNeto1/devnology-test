@@ -1,34 +1,34 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-const brazilianSchema = z.array(
-  z.object({
-    id: z.string(),
-    nome: z.string(),
-    descricao: z.string(),
-    categoria: z.string(),
-    imagem: z.string(),
-    preco: z.coerce.number(),
-    material: z.string(),
-    departamento: z.string(),
-  })
-);
+const brazilianProduct = z.object({
+  id: z.string(),
+  nome: z.string(),
+  descricao: z.string(),
+  categoria: z.string(),
+  imagem: z.string(),
+  preco: z.coerce.number(),
+  material: z.string(),
+  departamento: z.string(),
+});
 
-const europeanSchema = z.array(
-  z.object({
-    id: z.string(),
-    name: z.string(),
-    hasDiscount: z.boolean(),
-    gallery: z.array(z.string()),
-    description: z.string(),
-    price: z.coerce.number(),
-    discountValue: z.coerce.number(),
-    details: z.object({
-      adjective: z.string(),
-      material: z.string(),
-    }),
-  })
-);
+const brazilianSchema = z.array(brazilianProduct);
+
+const europeanProduct = z.object({
+  id: z.string(),
+  name: z.string(),
+  hasDiscount: z.boolean(),
+  gallery: z.array(z.string()),
+  description: z.string(),
+  price: z.coerce.number(),
+  discountValue: z.coerce.number(),
+  details: z.object({
+    adjective: z.string(),
+    material: z.string(),
+  }),
+});
+const europeanSchema = z.array(europeanProduct);
 
 const searchSchema = z.object({
   term: z.string(),
@@ -150,6 +150,110 @@ const mergeProducts = (
   return result;
 };
 
+type ShowProduct = {
+  id: string;
+  origin: "brazil" | "europe";
+  name: string;
+  description: string;
+  price: number;
+  discount_price: number;
+  discount: boolean;
+  gallery: string[];
+  category: string | null;
+  details: Record<string, string>;
+};
+
+const fetchBrazilianProduct = async (
+  id: string
+): Promise<ShowProduct | null> => {
+  const url = new URL(
+    `https://616d6bdb6dacbb001794ca17.mockapi.io/devnology/brazilian_provider/${id}`
+  );
+
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const json = await response.json();
+  const parsedData = brazilianProduct.safeParse(json);
+
+  if (!parsedData.success) {
+    console.log(parsedData.error.issues);
+    return null;
+  }
+
+  return {
+    id: parsedData.data.id,
+    category: parsedData.data.categoria,
+    description: parsedData.data.descricao,
+    discount: false,
+    discount_price: 0,
+    gallery: [
+      parsedData.data.imagem,
+      parsedData.data.imagem,
+      parsedData.data.imagem,
+      parsedData.data.imagem,
+    ],
+    name: parsedData.data.nome,
+    origin: "brazil",
+    price: parsedData.data.preco,
+    details: {
+      Material: parsedData.data.material,
+      Departamento: parsedData.data.departamento,
+    },
+  };
+};
+
+const fetchEuropeanProduct = async (
+  id: string
+): Promise<ShowProduct | null> => {
+  const url = new URL(
+    `https://616d6bdb6dacbb001794ca17.mockapi.io/devnology/european_provider/${id}`
+  );
+
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const json = await response.json();
+  const parsedData = europeanProduct.safeParse(json);
+
+  if (!parsedData.success) {
+    console.log(parsedData.error.issues);
+    return null;
+  }
+
+  return {
+    id: parsedData.data.id,
+    category: "",
+    description: parsedData.data.description,
+    discount: parsedData.data.hasDiscount,
+    discount_price: parsedData.data.discountValue,
+    gallery: parsedData.data.gallery,
+    name: parsedData.data.name,
+    origin: "europe",
+    price: parsedData.data.price,
+    details: {
+      Adjective: parsedData.data.details.adjective,
+      Material: parsedData.data.details.material,
+    },
+  };
+};
+
 export const productRouter = createTRPCRouter({
   search: publicProcedure.input(searchSchema).query(async ({ input }) => {
     const [brazilianProducts, europeanProducts] = await Promise.all([
@@ -167,4 +271,30 @@ export const productRouter = createTRPCRouter({
 
     return mergeProducts(brazilianProducts, europeanProducts);
   }),
+  brazilianProduct: publicProcedure
+    .input(z.string())
+    .query(async ({ input }) => {
+      const product = await fetchBrazilianProduct(input);
+      if (!product) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Produto não encontrado",
+        });
+      }
+
+      return product;
+    }),
+  europeanProduct: publicProcedure
+    .input(z.string())
+    .query(async ({ input }) => {
+      const product = await fetchEuropeanProduct(input);
+      if (!product) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Produto não encontrado",
+        });
+      }
+
+      return product;
+    }),
 });
