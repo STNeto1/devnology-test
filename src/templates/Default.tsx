@@ -11,17 +11,20 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { type PropsWithChildren } from "react";
 import { Button } from "~/components/Button";
 import { CartDropdown } from "~/components/CartDropdown";
 
-const navigation = [{ name: "Home", href: "/", current: true }];
+const navigation = [
+  { name: "Home", href: "/" },
+  { name: "Pedidos", href: "/orders" },
+];
 
-type Props = {};
-
-export const DefaultLayout = (props: PropsWithChildren<Props>) => {
+export const DefaultLayout = (props: PropsWithChildren) => {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const { pathname } = useRouter();
 
   return (
     <>
@@ -46,12 +49,14 @@ export const DefaultLayout = (props: PropsWithChildren<Props>) => {
                             key={item.name}
                             href={item.href}
                             className={clsx(
-                              item.current
+                              item.href === pathname
                                 ? "bg-gray-900 text-white"
                                 : "text-gray-300 hover:bg-gray-700 hover:text-white",
                               "rounded-md px-3 py-2 text-sm font-medium"
                             )}
-                            aria-current={item.current ? "page" : undefined}
+                            aria-current={
+                              item.href === pathname ? "page" : undefined
+                            }
                           >
                             {item.name}
                           </Link>
@@ -112,12 +117,12 @@ export const DefaultLayout = (props: PropsWithChildren<Props>) => {
                       key={item.name}
                       href={item.href}
                       className={clsx(
-                        item.current
+                        item.href === pathname
                           ? "block w-full bg-gray-900 text-center text-white"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white",
                         "rounded-md px-3 py-2 text-sm font-medium"
                       )}
-                      aria-current={item.current ? "page" : undefined}
+                      aria-current={item.href === pathname ? "page" : undefined}
                     >
                       {item.name}
                     </Link>

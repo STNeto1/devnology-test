@@ -33,10 +33,12 @@ model Order {
 model OrderItem {
     id String @id @default(cuid())
 
-    ref       String
-    origin    String
-    quantity  Int
-    unitPrice Float
+    ref         String
+    name        String
+    description String
+    origin      String
+    quantity    Int
+    unitPrice   Float
 
     order   Order  @relation(fields: [orderId], references: [id])
     orderId String

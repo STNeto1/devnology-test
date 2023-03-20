@@ -68,6 +68,8 @@ export const orderRouter = createTRPCRouter({
                   unitPrice: price,
                   ref: itemRef,
                   quantity: inputElem?.quantity ?? 1,
+                  name: item.name,
+                  description: item.description,
                 };
               }),
             },
@@ -82,4 +84,24 @@ export const orderRouter = createTRPCRouter({
         });
       }
     }),
+  listOrders: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.order.findMany({
+      where: {
+        userId: ctx.auth.userId,
+      },
+      select: {
+        id: true,
+        total: true,
+        address: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        createdAt: true,
+        items: {},
+      },
+      // include: {
+      //   items: true,
+      // },
+    });
+  }),
 });
