@@ -4,9 +4,31 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { Fragment, useState, type FC } from "react";
 import { Loading } from "~/components/Loading";
-import { useCartStore } from "~/lib/cart";
-import { api } from "~/utils/api";
+import { useCartStore, type SimpleCartItem } from "~/lib/cart";
+import { api, type RouterOutputs } from "~/utils/api";
 import { intlCurrency } from "~/utils/intl";
+
+export const calculateSubtotal = (
+  data: SimpleCartItem[],
+  external: RouterOutputs["product"]["fetchMany"]
+) => {
+  let total = 0;
+
+  external.forEach((elem) => {
+    const cartElem = data.find(
+      (cElem) => cElem._ref === [elem.origin, elem.id].join("_")
+    );
+    if (!cartElem) {
+      return;
+    }
+
+    const price = elem.discount ? elem.discount_price : elem.price;
+
+    total += price * cartElem.quantity;
+  });
+
+  return total;
+};
 
 export const CartDropdown: FC = () => {
   const [open, setOpen] = useState(false);
@@ -166,7 +188,14 @@ export const CartDropdown: FC = () => {
                     <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                       <div className="flex justify-between text-base font-medium text-gray-900">
                         <p>Subtotal</p>
-                        <p>$262.00</p>
+                        <p>
+                          {intlCurrency(
+                            calculateSubtotal(
+                              items,
+                              fetchCartProducts.data ?? []
+                            )
+                          )}
+                        </p>
                       </div>
 
                       <div className="mt-6">

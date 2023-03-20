@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
-type SimpleCartItem = {
+export type SimpleCartItem = {
   _ref: string;
   id: string;
   origin: "brazil" | "europe";
