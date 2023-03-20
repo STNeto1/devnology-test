@@ -1,25 +1,32 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { FC, useState } from "react";
+import { useState, type FC } from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Label } from "~/components/Label";
 import { Loading } from "~/components/Loading";
 import { DefaultLayout } from "~/templates/Default";
 
-import { api, RouterOutputs } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 import { intlCurrency } from "~/utils/intl";
 
 const Home: NextPage = () => {
   const [page, setPage] = useState(1);
   const [term, setTerm] = useState("");
 
-  const searchQuery = api.product.search.useQuery({
-    limit: 12,
-    page,
-    term,
-  });
+  const searchQuery = api.product.search.useQuery(
+    {
+      limit: 12,
+      page,
+      term,
+    },
+    {
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const handleNext = () => setPage((prev) => prev + 1);
   const handlePrev = () => setPage((prev) => Math.max(1, prev - 1));

@@ -297,4 +297,26 @@ export const productRouter = createTRPCRouter({
 
       return product;
     }),
+  fetchMany: publicProcedure
+    .input(z.array(z.string()))
+    .query(async ({ input }) => {
+      const brazilianProducts = input
+        .filter((elem) => elem.startsWith("brazil"))
+        .map((elem) => elem.split("_")[1] as string);
+
+      const europeanProducts = input
+        .filter((elem) => elem.startsWith("europe"))
+        .map((elem) => elem.split("_")[1] as string);
+
+      const _brazilianProducts = await Promise.all(
+        brazilianProducts.map((id) => fetchBrazilianProduct(id))
+      );
+      const _europeanProducts = await Promise.all(
+        europeanProducts.map((id) => fetchEuropeanProduct(id))
+      );
+
+      return [..._brazilianProducts, ..._europeanProducts].filter((elem) =>
+        Boolean(elem)
+      ) as ShowProduct[];
+    }),
 });

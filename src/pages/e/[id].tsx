@@ -17,6 +17,9 @@ const EuropeanProductPage: NextPage = () => {
     query["id"] as string,
     {
       enabled: isReady,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
     }
   );
 

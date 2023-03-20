@@ -1,8 +1,12 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { ShoppingBagIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { Fragment, useState, type FC } from "react";
+import { Loading } from "~/components/Loading";
 import { useCartStore } from "~/lib/cart";
+import { api } from "~/utils/api";
+import { intlCurrency } from "~/utils/intl";
 
 export const CartDropdown: FC = () => {
   const [open, setOpen] = useState(false);
@@ -11,6 +15,10 @@ export const CartDropdown: FC = () => {
   const items = useCartStore((state) => state.getItems());
   const cartSize = useCartStore((state) => state.size());
   const removeItem = useCartStore((state) => state.remove);
+
+  const fetchCartProducts = api.product.fetchMany.useQuery(
+    items.map((p) => p._ref)
+  );
 
   return (
     <>
@@ -72,60 +80,87 @@ export const CartDropdown: FC = () => {
                         </div>
                       </div>
 
-                      <div className="mt-8">
-                        <div className="flow-root">
-                          <ul
-                            role="list"
-                            className="-my-6 divide-y divide-gray-200"
-                          >
-                            {items.map((product) => (
-                              <li
-                                key={[
-                                  product.id,
-                                  product.origin,
-                                  product.quantity,
-                                ].join("_")}
-                                className="flex py-6"
-                              >
-                                <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                  {/* <img
-                                  src={product.imageSrc}
-                                  alt={product.imageAlt}
-                                  className="w-full h-full object-center object-cover"
-                                /> */}
-                                </div>
+                      {fetchCartProducts.isLoading && (
+                        <section className="pt-4">
+                          <Loading />
+                        </section>
+                      )}
 
-                                <div className="ml-4 flex flex-1 flex-col">
-                                  <div>
-                                    <div className="flex justify-between text-base font-medium text-gray-900">
-                                      <h3>
-                                        {"Produto X"}
-                                        {/* <a href={product.href}>{product.name}</a> */}
-                                      </h3>
-                                      <p className="ml-4">{10}</p>
+                      {!!fetchCartProducts.data && (
+                        <div className="mt-8">
+                          <div className="flow-root">
+                            <ul
+                              role="list"
+                              className="-my-6 divide-y divide-gray-200"
+                            >
+                              {fetchCartProducts.data.map((product) => (
+                                <li
+                                  key={[product.id, product.origin].join("_")}
+                                  className="flex py-6"
+                                >
+                                  <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                                    <Image
+                                      src={product.gallery.at(0) ?? ""}
+                                      alt={product.name}
+                                      className="h-full w-full object-cover object-center"
+                                      width={96}
+                                      height={96}
+                                    />
+                                  </div>
+
+                                  <div className="ml-4 flex flex-1 flex-col">
+                                    <div>
+                                      <div className="flex justify-between text-base font-medium text-gray-900">
+                                        <h3>
+                                          {product.name}
+                                          {/* <a href={product.href}>{product.name}</a> */}
+                                        </h3>
+                                        <p className="ml-4">
+                                          {intlCurrency(
+                                            product.discount
+                                              ? product.discount_price
+                                              : product.price
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-1 items-end justify-between text-sm">
+                                      <p className="text-gray-500">
+                                        Qty
+                                        {
+                                          items.find(
+                                            (elem) =>
+                                              elem.id === product.id &&
+                                              elem.origin === product.origin
+                                          )?.quantity
+                                        }
+                                      </p>
+
+                                      <div className="flex">
+                                        <button
+                                          type="button"
+                                          className="font-medium text-gray-600 hover:text-gray-500"
+                                          onClick={() =>
+                                            removeItem(
+                                              items.find(
+                                                (elem) =>
+                                                  elem.id === product.id &&
+                                                  elem.origin === product.origin
+                                              )?._ref ?? ""
+                                            )
+                                          }
+                                        >
+                                          Remover
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="flex flex-1 items-end justify-between text-sm">
-                                    <p className="text-gray-500">
-                                      Qty {product.quantity}
-                                    </p>
-
-                                    <div className="flex">
-                                      <button
-                                        type="button"
-                                        className="font-medium text-gray-600 hover:text-gray-500"
-                                        onClick={() => removeItem(product._ref)}
-                                      >
-                                        Remover
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
@@ -133,9 +168,7 @@ export const CartDropdown: FC = () => {
                         <p>Subtotal</p>
                         <p>$262.00</p>
                       </div>
-                      <p className="mt-0.5 text-sm text-gray-500">
-                        Shipping and taxes calculated at checkout.
-                      </p>
+
                       <div className="mt-6">
                         <a
                           href="#"
@@ -143,19 +176,6 @@ export const CartDropdown: FC = () => {
                         >
                           Checkout
                         </a>
-                      </div>
-                      <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
-                        <p>
-                          or{" "}
-                          <button
-                            type="button"
-                            className="font-medium text-gray-600 hover:text-gray-500"
-                            onClick={() => setOpen(false)}
-                          >
-                            Continue Shopping
-                            <span aria-hidden="true"> &rarr;</span>
-                          </button>
-                        </p>
                       </div>
                     </div>
                   </div>

@@ -3,12 +3,12 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FC } from "react";
+import { type FC } from "react";
 import { Button } from "~/components/Button";
 import { Loading } from "~/components/Loading";
 import { useCartStore } from "~/lib/cart";
 import { DefaultLayout } from "~/templates/Default";
-import { api, RouterOutputs } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 import { intlCurrency } from "~/utils/intl";
 
 const BrazilianProductPage: NextPage = () => {
@@ -17,6 +17,9 @@ const BrazilianProductPage: NextPage = () => {
     query["id"] as string,
     {
       enabled: isReady,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
     }
   );
 
