@@ -10,8 +10,34 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Order {
+    id String @id @default(cuid())
+
+    total Float
+
+    cardName       String
+    cardNumber     String
+    cardExpiration String
+    cardCvc        String
+
+    address    String
+    city       String
+    state      String
+    postalCode String
+    userId     String
+    createdAt  DateTime @default(now())
+
+    items OrderItem[]
+}
+
+model OrderItem {
+    id String @id @default(cuid())
+
+    ref        String
+    origin     String
+    quantity   Int
+    unitPricee Float
+
+    order   Order  @relation(fields: [orderId], references: [id])
+    orderId String
 }

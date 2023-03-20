@@ -104,16 +104,22 @@ const Checkout: NextPage = () => {
                                   </div>
 
                                   <div className="ml-4 flow-root flex-shrink-0">
-                                    <button
+                                    <Button
                                       type="button"
-                                      className="-m-2.5 flex items-center justify-center bg-white p-2.5 text-gray-400 hover:text-gray-500"
+                                      variant={"destructive"}
+                                      onClick={() =>
+                                        removeItem(
+                                          [product.origin, product.id].join("_")
+                                        )
+                                      }
+                                      size={"sm"}
                                     >
-                                      <span className="sr-only">Remove</span>
+                                      <span className="sr-only">Retirar</span>
                                       <TrashIcon
                                         className="h-5 w-5"
                                         aria-hidden="true"
                                       />
-                                    </button>
+                                    </Button>
                                   </div>
                                 </div>
 
@@ -236,16 +242,22 @@ const Checkout: NextPage = () => {
                           </div>
 
                           <div className="ml-4 flow-root flex-shrink-0">
-                            <button
+                            <Button
                               type="button"
-                              className="-m-2.5 flex items-center justify-center bg-white p-2.5 text-gray-400 hover:text-gray-500"
+                              variant={"destructive"}
+                              size={"sm"}
+                              onClick={() =>
+                                removeItem(
+                                  [product.origin, product.id].join("_")
+                                )
+                              }
                             >
                               <span className="sr-only">Remove</span>
                               <TrashIcon
                                 className="h-5 w-5"
                                 aria-hidden="true"
                               />
-                            </button>
+                            </Button>
                           </div>
                         </div>
 
