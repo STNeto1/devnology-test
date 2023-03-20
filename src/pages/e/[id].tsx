@@ -3,10 +3,12 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FC } from "react";
+import { type FC } from "react";
+import { Button } from "~/components/Button";
 import { Loading } from "~/components/Loading";
+import { useCartStore } from "~/lib/cart";
 import { DefaultLayout } from "~/templates/Default";
-import { api, RouterOutputs } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 import { intlCurrency } from "~/utils/intl";
 
 const EuropeanProductPage: NextPage = () => {
@@ -42,6 +44,9 @@ const EuropeanProductPage: NextPage = () => {
 const ProductSection: FC<RouterOutputs["product"]["europeanProduct"]> = (
   props
 ) => {
+  const addToCart = useCartStore((state) => state.add);
+  const inStore = useCartStore((state) => state.inStore);
+
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="bg-white">
@@ -82,6 +87,24 @@ const ProductSection: FC<RouterOutputs["product"]["europeanProduct"]> = (
             </div>
 
             <div className="mt-8 lg:col-span-5">
+              <Button
+                variant={"subtle"}
+                className="w-full"
+                onClick={() =>
+                  addToCart({
+                    id: props.id,
+                    origin: "europe",
+                  })
+                }
+              >
+                {inStore({
+                  id: props.id,
+                  origin: "europe",
+                })
+                  ? "Add one more"
+                  : "Add one"}
+              </Button>
+
               {/* Product details */}
               <div className="mt-10">
                 <h2 className="text-sm font-medium text-gray-900">
