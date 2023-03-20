@@ -12,6 +12,7 @@ interface ICartStore {
   products: Array<SimpleCartItem>;
 
   size: () => number;
+  clear: () => void;
   add: (item: Omit<SimpleCartItem, "quantity" | "_ref">) => void;
   updateQty: (
     item: Omit<SimpleCartItem, "quantity" | "_ref">,
@@ -28,6 +29,11 @@ export const useCartStore = create<ICartStore>()(
       (set, get) => ({
         products: [],
 
+        clear: () =>
+          set((state) => ({
+            ...state,
+            products: [],
+          })),
         getItems: () => get().products,
         size: () => get().products.length,
         inStore: (item) =>

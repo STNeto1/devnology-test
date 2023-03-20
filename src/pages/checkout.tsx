@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { Button } from "~/components/Button";
@@ -21,6 +22,8 @@ const Checkout: NextPage = () => {
   const items = useCartStore((state) => state.getItems());
   const updateQty = useCartStore((state) => state.updateQty);
   const removeItem = useCartStore((state) => state.remove);
+  const clearStore = useCartStore((state) => state.clear);
+  const { push } = useRouter();
 
   const submitOrder = api.order.createOrder.useMutation();
 
@@ -34,8 +37,9 @@ const Checkout: NextPage = () => {
   });
   const onSubmit = handleSubmit(async (data) => {
     await submitOrder.mutateAsync(data, {
-      onSuccess: () => {
-        console.log("success");
+      onSuccess: async () => {
+        clearStore();
+        await push("/orders");
       },
     });
   });
@@ -418,6 +422,7 @@ const Checkout: NextPage = () => {
                             {...register("cardName")}
                             autoComplete="cc-name"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
 
                           <FormValidationError
@@ -440,6 +445,7 @@ const Checkout: NextPage = () => {
                             {...register("cardNumber")}
                             autoComplete="cc-number"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
 
                           <FormValidationError
@@ -462,6 +468,7 @@ const Checkout: NextPage = () => {
                             {...register("cardExpiration")}
                             autoComplete="cc-exp"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
 
                           <FormValidationError
@@ -484,6 +491,7 @@ const Checkout: NextPage = () => {
                             id="cvc"
                             autoComplete="csc"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
                           <FormValidationError
                             message={errors.cardCvc?.message}
@@ -505,6 +513,7 @@ const Checkout: NextPage = () => {
                             {...register("address")}
                             autoComplete="street-address"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
                           <FormValidationError
                             message={errors.address?.message}
@@ -526,6 +535,7 @@ const Checkout: NextPage = () => {
                             {...register("city")}
                             autoComplete="address-level2"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
                           <FormValidationError message={errors.city?.message} />
                         </div>
@@ -545,6 +555,7 @@ const Checkout: NextPage = () => {
                             {...register("state")}
                             autoComplete="address-level1"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
                           <FormValidationError
                             message={errors.state?.message}
@@ -566,6 +577,7 @@ const Checkout: NextPage = () => {
                             {...register("postalCode")}
                             autoComplete="postal-code"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                            disabled={submitOrder.isLoading}
                           />
                           <FormValidationError
                             message={errors.postalCode?.message}
@@ -578,7 +590,7 @@ const Checkout: NextPage = () => {
                       type="submit"
                       className="mt-4 w-full"
                       variant={"subtle"}
-                      disabled={items.length === 0}
+                      disabled={items.length === 0 || submitOrder.isLoading}
                     >
                       Pagar
                     </Button>
