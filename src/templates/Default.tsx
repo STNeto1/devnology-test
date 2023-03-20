@@ -7,30 +7,21 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import { Disclosure } from "@headlessui/react";
-import {
-  Bars3Icon,
-  BellIcon,
-  ShoppingBagIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { type PropsWithChildren } from "react";
 import { Button } from "~/components/Button";
-import { useCartStore } from "~/lib/cart";
+import { CartDropdown } from "~/components/CartDropdown";
 
 const navigation = [{ name: "Home", href: "/", current: true }];
 
 type Props = {};
 
 export const DefaultLayout = (props: PropsWithChildren<Props>) => {
-  const { isLoaded, user } = useUser();
+  const { user } = useUser();
   const { signOut } = useAuth();
-  const { isReady } = useRouter();
-
-  const cartSize = useCartStore((state) => state.size());
 
   return (
     <>
@@ -78,17 +69,7 @@ export const DefaultLayout = (props: PropsWithChildren<Props>) => {
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
 
-                      <button
-                        type="button"
-                        className="flex gap-2 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                      >
-                        <span className="sr-only">View notifications</span>
-                        <ShoppingBagIcon
-                          className="h-6 w-6"
-                          aria-hidden="true"
-                        />
-                        <span className="">{isReady ? cartSize : 0}</span>
-                      </button>
+                      <CartDropdown />
 
                       <SignedIn>
                         {/* Mount the UserButton component */}

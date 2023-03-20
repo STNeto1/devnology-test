@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
 type SimpleCartItem = {
+  _ref: string;
   id: string;
   origin: "brazil" | "europe";
   quantity: number;
@@ -11,8 +12,10 @@ interface ICartStore {
   products: Array<SimpleCartItem>;
 
   size: () => number;
-  add: (item: Omit<SimpleCartItem, "quantity">) => void;
-  inStore: (item: Omit<SimpleCartItem, "quantity">) => boolean;
+  add: (item: Omit<SimpleCartItem, "quantity" | "_ref">) => void;
+  inStore: (item: Omit<SimpleCartItem, "quantity" | "_ref">) => boolean;
+  getItems: () => Array<SimpleCartItem>;
+  remove: (_ref: string) => void;
 }
 
 export const useCartStore = create<ICartStore>()(
@@ -20,6 +23,8 @@ export const useCartStore = create<ICartStore>()(
     persist(
       (set, get) => ({
         products: [],
+
+        getItems: () => get().products,
         size: () => get().products.length,
         inStore: (item) =>
           get().products.some(
@@ -49,11 +54,22 @@ export const useCartStore = create<ICartStore>()(
             products: [
               ...state.products,
               {
+                _ref: [item.origin, item.id].join("_"),
                 id: item.id,
                 origin: item.origin,
                 quantity: 1,
               },
             ],
+          }));
+        },
+        remove: (item) => {
+          const items = get().products;
+
+          set((state) => ({
+            ...state,
+            products: items.filter((p) => {
+              return p._ref !== item;
+            }),
           }));
         },
       }),
