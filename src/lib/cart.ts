@@ -13,6 +13,10 @@ interface ICartStore {
 
   size: () => number;
   add: (item: Omit<SimpleCartItem, "quantity" | "_ref">) => void;
+  updateQty: (
+    item: Omit<SimpleCartItem, "quantity" | "_ref">,
+    qty: number
+  ) => void;
   inStore: (item: Omit<SimpleCartItem, "quantity" | "_ref">) => boolean;
   getItems: () => Array<SimpleCartItem>;
   remove: (_ref: string) => void;
@@ -60,6 +64,16 @@ export const useCartStore = create<ICartStore>()(
                 quantity: 1,
               },
             ],
+          }));
+        },
+        updateQty: (item, qty) => {
+          set((state) => ({
+            ...state,
+            products: state.products.map((p) => ({
+              ...p,
+              quantity:
+                p.id === item.id && p.origin === item.origin ? qty : p.quantity,
+            })),
           }));
         },
         remove: (item) => {

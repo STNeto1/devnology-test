@@ -1,6 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { ShoppingBagIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment, useState, type FC } from "react";
 import { Loading } from "~/components/Loading";
@@ -88,7 +89,7 @@ export const CartDropdown: FC = () => {
                     <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
                       <div className="flex items-start justify-between">
                         <Dialog.Title className="text-lg font-medium text-gray-900">
-                          Shopping cart
+                          Carrinho
                         </Dialog.Title>
                         <div className="ml-3 flex h-7 items-center">
                           <button
@@ -199,12 +200,12 @@ export const CartDropdown: FC = () => {
                       </div>
 
                       <div className="mt-6">
-                        <a
-                          href="#"
+                        <Link
+                          href="/checkout"
                           className="flex items-center justify-center rounded-md border border-transparent bg-gray-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700"
                         >
                           Checkout
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </div>
