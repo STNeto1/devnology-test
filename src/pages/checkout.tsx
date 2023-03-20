@@ -1,13 +1,18 @@
 import { Disclosure } from "@headlessui/react";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { type z } from "zod";
 import { Button } from "~/components/Button";
 import { calculateSubtotal } from "~/components/CartDropdown";
+import FormValidationError from "~/components/FormValidationError";
 import { Input } from "~/components/Input";
 import { Label } from "~/components/Label";
 import { useCartStore } from "~/lib/cart";
+import { createOrderSchema } from "~/server/inputs/order";
 import { DefaultLayout } from "~/templates/Default";
 import { api } from "~/utils/api";
 import { intlCurrency } from "~/utils/intl";
@@ -17,8 +22,42 @@ const Checkout: NextPage = () => {
   const updateQty = useCartStore((state) => state.updateQty);
   const removeItem = useCartStore((state) => state.remove);
 
+  const submitOrder = api.order.createOrder.useMutation();
+
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof createOrderSchema>>({
+    resolver: zodResolver(createOrderSchema),
+  });
+  const onSubmit = handleSubmit(async (data) => {
+    await submitOrder.mutateAsync(data, {
+      onSuccess: () => {
+        console.log("success");
+      },
+    });
+  });
+
   const fetchCartProducts = api.product.fetchMany.useQuery(
-    items.map((p) => p._ref)
+    items.map((p) => p._ref),
+    {
+      onSuccess(data) {
+        setValue(
+          "items",
+          data.map((item) => {
+            const itemRef = [item.origin, item.id].join("_");
+            const cartEntry = items.find((i) => i._ref === itemRef);
+
+            return {
+              quantity: cartEntry?.quantity ?? 1,
+              ref: itemRef,
+            };
+          })
+        );
+      },
+    }
   );
 
   const subtotal = intlCurrency(
@@ -331,11 +370,39 @@ const Checkout: NextPage = () => {
                 className="flex-auto overflow-y-auto px-4 pt-12 pb-16 sm:px-6 sm:pt-16 lg:px-8 lg:pt-0 lg:pb-24"
               >
                 <h2 id="payment-heading" className="sr-only">
-                  Payment and shipping details
+                  Pagamento
                 </h2>
 
                 <div className="mx-auto max-w-lg lg:pt-16">
-                  <form className="mt-6">
+                  {submitOrder.isError && (
+                    <>
+                      <div className="rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <XCircleIcon
+                              className="h-5 w-5 text-red-400"
+                              aria-hidden="true"
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-sm font-medium text-red-800">
+                              {"Erro processando pedido"}
+                            </h3>
+                            <div className="mt-2 text-sm text-red-700">
+                              <ul
+                                role="list"
+                                className="list-disc space-y-1 pl-5"
+                              >
+                                <li>{submitOrder.error.message}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <form className="mt-6" onSubmit={onSubmit}>
                     <div className="grid grid-cols-12 gap-y-6 gap-x-4">
                       <div className="col-span-full">
                         <Label
@@ -348,9 +415,13 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="name-on-card"
-                            name="name-on-card"
+                            {...register("cardName")}
                             autoComplete="cc-name"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+
+                          <FormValidationError
+                            message={errors.cardName?.message}
                           />
                         </div>
                       </div>
@@ -366,9 +437,13 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="card-number"
-                            name="card-number"
+                            {...register("cardNumber")}
                             autoComplete="cc-number"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+
+                          <FormValidationError
+                            message={errors.cardNumber?.message}
                           />
                         </div>
                       </div>
@@ -383,10 +458,14 @@ const Checkout: NextPage = () => {
                         <div className="mt-1">
                           <Input
                             type="text"
-                            name="expiration-date"
                             id="expiration-date"
+                            {...register("cardExpiration")}
                             autoComplete="cc-exp"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+
+                          <FormValidationError
+                            message={errors.cardExpiration?.message}
                           />
                         </div>
                       </div>
@@ -401,10 +480,13 @@ const Checkout: NextPage = () => {
                         <div className="mt-1">
                           <Input
                             type="text"
-                            name="cvc"
+                            {...register("cardCvc")}
                             id="cvc"
                             autoComplete="csc"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+                          <FormValidationError
+                            message={errors.cardCvc?.message}
                           />
                         </div>
                       </div>
@@ -420,9 +502,12 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="address"
-                            name="address"
+                            {...register("address")}
                             autoComplete="street-address"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+                          <FormValidationError
+                            message={errors.address?.message}
                           />
                         </div>
                       </div>
@@ -438,10 +523,11 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="city"
-                            name="city"
+                            {...register("city")}
                             autoComplete="address-level2"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
                           />
+                          <FormValidationError message={errors.city?.message} />
                         </div>
                       </div>
 
@@ -456,9 +542,12 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="region"
-                            name="region"
+                            {...register("state")}
                             autoComplete="address-level1"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+                          <FormValidationError
+                            message={errors.state?.message}
                           />
                         </div>
                       </div>
@@ -474,9 +563,12 @@ const Checkout: NextPage = () => {
                           <Input
                             type="text"
                             id="postal-code"
-                            name="postal-code"
+                            {...register("postalCode")}
                             autoComplete="postal-code"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
+                          />
+                          <FormValidationError
+                            message={errors.postalCode?.message}
                           />
                         </div>
                       </div>

@@ -150,7 +150,7 @@ const mergeProducts = (
   return result;
 };
 
-type ShowProduct = {
+export type ShowProduct = {
   id: string;
   origin: "brazil" | "europe";
   name: string;
@@ -163,7 +163,7 @@ type ShowProduct = {
   details: Record<string, string>;
 };
 
-const fetchBrazilianProduct = async (
+export const fetchBrazilianProduct = async (
   id: string
 ): Promise<ShowProduct | null> => {
   const url = new URL(
@@ -211,7 +211,7 @@ const fetchBrazilianProduct = async (
   };
 };
 
-const fetchEuropeanProduct = async (
+export const fetchEuropeanProduct = async (
   id: string
 ): Promise<ShowProduct | null> => {
   const url = new URL(
